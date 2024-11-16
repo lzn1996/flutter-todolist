@@ -50,6 +50,13 @@ class _HomePageState extends State<HomePage> {
     await SharedPrefs.saveTasks(_tasks);
   }
 
+  Future<void> _editTask(int index, String newTitle) async {
+    setState(() {
+      _tasks[index].title = newTitle;
+    });
+    await SharedPrefs.saveTasks(_tasks);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,6 +93,7 @@ class _HomePageState extends State<HomePage> {
                   task: _tasks[index],
                   onToggle: () => _toggleTask(index),
                   onDelete: () => _deleteTask(index),
+                  onEdit: (newTitle) => _editTask(index, newTitle),
                 );
               },
             ),

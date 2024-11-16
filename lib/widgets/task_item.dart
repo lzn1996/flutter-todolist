@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import '../models/task.dart';
+import '../pages/edit_task_page.dart';
 
 class TaskItem extends StatelessWidget {
   final Task task;
   final VoidCallback onToggle;
   final VoidCallback onDelete;
+  final Function(String) onEdit;
 
   const TaskItem({
     Key? key,
     required this.task,
     required this.onToggle,
     required this.onDelete,
+    required this.onEdit,
   }) : super(key: key);
 
   @override
@@ -26,9 +29,28 @@ class TaskItem extends StatelessWidget {
           decoration: task.isDone ? TextDecoration.lineThrough : null,
         ),
       ),
-      trailing: IconButton(
-        icon: const Icon(Icons.delete),
-        onPressed: onDelete,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditTaskPage(
+                    task: task,
+                    onEdit: onEdit,
+                  ),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: onDelete,
+          ),
+        ],
       ),
     );
   }
