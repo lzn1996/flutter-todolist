@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/task.dart';
 import '../utils/shared_prefs.dart';
@@ -57,11 +58,26 @@ class _HomePageState extends State<HomePage> {
     await SharedPrefs.saveTasks(_tasks);
   }
 
+  Future<void> _logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('username');
+    await prefs.remove('password');
+    if (mounted) {
+      Navigator.pushReplacementNamed(context, '/login');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('To-Do List usando "Shared Preferences"'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.exit_to_app),
+            onPressed: _logout,
+          ),
+        ],
       ),
       body: Column(
         children: [
