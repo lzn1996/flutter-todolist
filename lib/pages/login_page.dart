@@ -111,6 +111,8 @@ class LoginPageState extends State<LoginPage> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Por favor, insira a senha';
+                    } else if (value.length < 6) {
+                      return 'A senha deve ter pelo menos 6 caracteres';
                     }
                     return null;
                   },

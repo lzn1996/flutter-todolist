@@ -6,10 +6,10 @@ class EditTaskPage extends StatefulWidget {
   final Function(String) onEdit;
 
   const EditTaskPage({
-    Key? key,
+    super.key,
     required this.task,
     required this.onEdit,
-  }) : super(key: key);
+  });
 
   @override
   State<EditTaskPage> createState() => _EditTaskPageState();
@@ -17,6 +17,7 @@ class EditTaskPage extends StatefulWidget {
 
 class _EditTaskPageState extends State<EditTaskPage> {
   late TextEditingController _controller;
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -30,35 +31,56 @@ class _EditTaskPageState extends State<EditTaskPage> {
     super.dispose();
   }
 
+  void _saveEdit() {
+    if (_formKey.currentState?.validate() ?? false) {
+      widget.onEdit(_controller.text);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tarefa atualizada com sucesso!')),
+      );
+      Navigator.pop(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Editar Tarefa'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.cancel),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _controller,
-              autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'Título da Tarefa',
-                border: OutlineInputBorder(),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              TextFormField(
+                controller: _controller,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  labelText: 'Título da Tarefa',
+                  hintText: 'Digite um novo título para a tarefa',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'O título não pode estar vazio!';
+                  }
+                  return null;
+                },
               ),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                if (_controller.text.isNotEmpty) {
-                  widget.onEdit(_controller.text);
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text('Salvar'),
-            ),
-          ],
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _saveEdit,
+                child: const Text('Salvar'),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../models/task.dart';
 import '../utils/shared_prefs.dart';
 import '../widgets/task_item.dart';
@@ -44,11 +43,37 @@ class _HomePageState extends State<HomePage> {
     await SharedPrefs.saveTasks(_tasks);
   }
 
-  Future<void> _deleteTask(int index) async {
-    setState(() {
-      _tasks.removeAt(index);
-    });
-    await SharedPrefs.saveTasks(_tasks);
+  Future<void> _confirmDeleteTask(int index) async {
+    bool? confirmDelete = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Confirmar Exclusão"),
+          content: const Text("Você tem certeza que deseja excluir esta tarefa?"),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              child: const Text('Confirmar'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmDelete == true) {
+      setState(() {
+        _tasks.removeAt(index);
+      });
+      await SharedPrefs.saveTasks(_tasks);
+    }
   }
 
   Future<void> _editTask(int index, String newTitle) async {
@@ -67,6 +92,17 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void _reorderTasks(int oldIndex, int newIndex) {
+    setState(() {
+      if (newIndex > oldIndex) {
+        newIndex -= 1;
+      }
+      final Task task = _tasks.removeAt(oldIndex);
+      _tasks.insert(newIndex, task);
+    });
+    SharedPrefs.saveTasks(_tasks);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,37 +118,64 @@ class _HomePageState extends State<HomePage> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(16.0),
             child: Row(
               children: [
                 Expanded(
                   child: TextField(
                     onSubmitted: (value) => _addTask(value),
                     controller: _controller,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: 'Digite uma tarefa',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
                     ),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.add),
+                const SizedBox(width: 10),
+                ElevatedButton(
                   onPressed: () => _addTask(_controller.text),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                  ),
+                  child: const Icon(Icons.add),
                 ),
               ],
             ),
           ),
           Expanded(
-            child: ListView.builder(
-              itemCount: _tasks.length,
-              itemBuilder: (context, index) {
-                return TaskItem(
-                  task: _tasks[index],
-                  onToggle: () => _toggleTask(index),
-                  onDelete: () => _deleteTask(index),
-                  onEdit: (newTitle) => _editTask(index, newTitle),
-                );
-              },
-            ),
+            child: _tasks.isEmpty
+                ? const Center(
+                    child: Text(
+                      'Nenhuma tarefa adicionada',
+                      style: TextStyle(fontSize: 18.0),
+                    ),
+                  )
+                : ReorderableListView(
+                    onReorder: _reorderTasks,
+                    children: [
+                      for (int index = 0; index < _tasks.length; index++)
+                        Padding(
+                          key: ValueKey(_tasks[index]),
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                          child: Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            child: TaskItem(
+                              task: _tasks[index],
+                              onToggle: () => _toggleTask(index),
+                              onDelete: () => _confirmDeleteTask(index),
+                              onEdit: (newTitle) => _editTask(index, newTitle),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
           ),
         ],
       ),

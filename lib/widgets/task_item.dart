@@ -9,12 +9,12 @@ class TaskItem extends StatelessWidget {
   final Function(String) onEdit;
 
   const TaskItem({
-    Key? key,
+    super.key,
     required this.task,
     required this.onToggle,
     required this.onDelete,
     required this.onEdit,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,11 +22,13 @@ class TaskItem extends StatelessWidget {
       leading: Checkbox(
         value: task.isDone,
         onChanged: (_) => onToggle(),
+        activeColor: Colors.green,  // Melhorar visibilidade
       ),
       title: Text(
         task.title,
         style: TextStyle(
           decoration: task.isDone ? TextDecoration.lineThrough : null,
+          color: task.isDone ? Colors.grey : Colors.black, // Mudança de cor para uma melhor visualização
         ),
       ),
       trailing: Row(
